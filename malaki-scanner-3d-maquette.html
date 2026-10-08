@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Malaki Skin — Maquette du scanner 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Manrope:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#FBF9F4;
+  --ivory-2:#F4F0F9;
+  --ink:#1D1630;
+  --ink-2:#5D566F;
+  --ink-3:#6E6782;
+  --violet:#5B3BD6;
+  --violet-deep:#3F25B0;
+  --lilac:#B9A6F5;
+  --silver:#B8B6C6;
+  --champagne:#B8975A;
+  --champagne-soft:#E3D2AE;
+  --mono:"Space Mono",ui-monospace,Menlo,monospace;
+  --sans:"Manrope","Segoe UI",system-ui,sans-serif;
+  --serif:"Fraunces",Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--ivory)}
+body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:2px solid var(--violet);outline-offset:3px}
+
+.world{position:fixed;inset:0;display:flex;justify-content:center;background:
+  radial-gradient(70% 45% at 50% 42%,#FFFFFF 0%,rgba(244,240,252,.9) 45%,rgba(251,249,244,0) 75%),
+  radial-gradient(40% 30% at 85% 95%,rgba(227,210,174,.18),rgba(227,210,174,0)),
+  var(--ivory)}
+
+.app{position:relative;width:100%;max-width:430px;height:100%;height:100dvh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 14px) 20px calc(env(safe-area-inset-bottom) + 18px)}
+
+/* En-tête */
+.top{display:flex;align-items:center;justify-content:space-between;height:52px;flex:none}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand b{font-family:var(--serif);font-weight:400;font-size:21px;letter-spacing:-.3px;font-style:italic}
+.brand span{font-size:12.5px;font-weight:500;color:var(--ink-2);letter-spacing:.1px}
+.close{width:42px;height:42px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 0 1px rgba(91,59,214,.10),inset 0 1px 0 #fff,0 8px 20px -12px rgba(50,30,130,.35)}
+
+/* Scène */
+.stage{flex:1;min-height:0;margin:0 -20px;display:flex;align-items:center;justify-content:center;position:relative}
+.scan{position:relative;width:340px;height:340px}
+.scan canvas{position:absolute;inset:0;width:100%;height:100%}
+.scan svg.rings{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+
+.spin{transform-origin:200px 200px;animation:spin 60s linear infinite}
+.spin-r{transform-origin:200px 200px;animation:spin 90s linear infinite reverse}
+.spin-fast{transform-origin:200px 200px;animation:spin 14s linear infinite}
+.spin-mid{transform-origin:200px 200px;animation:spin 26s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.paused .spin,.paused .spin-r,.paused .spin-fast,.paused .spin-mid{animation-play-state:paused}
+
+.prog{transition:stroke .9s ease}
+.complete .prog{stroke:url(#gChamp)}
+.pulse-done{opacity:0;transform-origin:200px 200px}
+.complete .pulse-done{animation:donePulse 2.2s cubic-bezier(.2,.7,.2,1) 1}
+@keyframes donePulse{0%{opacity:.7;transform:scale(.92)}100%{opacity:0;transform:scale(1.12)}}
+
+.star{transition:fill .5s,r .5s,opacity .5s}
+.star.future{fill:var(--silver);opacity:.55}
+.star.current{fill:var(--violet);opacity:1}
+.star.done{fill:var(--violet);opacity:1}
+.halo-star{fill:none;stroke:var(--violet);opacity:0;transform-box:fill-box;transform-origin:center}
+.halo-star.on{animation:halo 1.8s ease-out infinite}
+@keyframes halo{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(3.4)}}
+.ring-star{fill:none;stroke:var(--champagne);stroke-width:.8;opacity:0;transition:opacity .6s}
+.ring-star.on{opacity:.9}
+
+.chev{opacity:0;transition:opacity .5s}
+.chev.on{opacity:1}
+.chev path{animation:chev 1.6s ease-in-out infinite}
+.chev path:nth-child(2){animation-delay:.18s}
+.chev path:nth-child(3){animation-delay:.36s}
+@keyframes chev{0%{opacity:0}35%{opacity:.9}100%{opacity:0}}
+
+/* Données holographiques */
+.holo{position:absolute;font-family:var(--mono);font-size:9px;line-height:1.55;letter-spacing:1.1px;color:var(--ink-3);pointer-events:none;transition:opacity .6s}
+.holo b{display:block;font-weight:400;color:var(--ink-2)}
+.holo i{font-style:normal;color:var(--violet)}
+.holo.tl{left:10px;top:6px}
+.holo.tr{right:10px;top:6px;text-align:right}
+.holo.bl{left:10px;bottom:6px}
+.holo.br{right:10px;bottom:6px;text-align:right}
+.live{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;letter-spacing:1.3px;color:var(--ink-2);white-space:nowrap;transition:opacity .6s}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 0 0 rgba(91,59,214,.5);animation:dot 1.8s ease-out infinite}
+@keyframes dot{0%{box-shadow:0 0 0 0 rgba(91,59,214,.5)}100%{box-shadow:0 0 0 7px rgba(91,59,214,0)}}
+
+.callout{position:absolute;left:0;top:0;min-width:96px;padding:7px 10px 8px;border-radius:12px;background:rgba(255,255,255,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 0 0 1px rgba(91,59,214,.16),inset 0 1px 0 #fff,0 10px 22px -12px rgba(50,30,130,.4);font-family:var(--mono);font-size:9px;letter-spacing:1.2px;color:var(--ink-2);opacity:0;pointer-events:none;will-change:transform,opacity}
+.callout b{display:block;font-weight:700;color:var(--ink);font-size:10px;letter-spacing:1.4px}
+.callout .st{display:flex;align-items:center;gap:6px;margin-top:3px}
+.callout .ok{color:var(--champagne);font-weight:700}
+
+/* Instruction */
+.guide{flex:none;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.instr{font-size:22px;font-weight:600;letter-spacing:-.4px;line-height:1.2;min-height:27px;transition:opacity .45s,transform .45s}
+.instr.swap{opacity:0;transform:translateY(6px)}
+.instr.serif{font-family:var(--serif);font-weight:300;font-size:26px;letter-spacing:-.6px}
+.sub{font-family:var(--mono);font-size:10px;letter-spacing:1.4px;color:var(--ink-3);min-height:15px;display:flex;align-items:center;gap:8px}
+.sub .ok{color:var(--champagne)}
+
+/* Bas */
+.bottom{flex:none;height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.prog-read{display:flex;flex-direction:column;gap:4px}
+.prog-read small{font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;color:var(--ink-3)}
+.prog-read strong{font-weight:300;font-size:30px;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}
+.prog-read strong em{font-style:normal;color:var(--ink-3);font-size:18px;letter-spacing:0}
+.ctrl{width:52px;height:52px;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--violet-deep);background:rgba(255,255,255,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 0 1px rgba(91,59,214,.16),inset 0 1px 0 #fff,0 10px 22px -14px rgba(50,30,130,.45)}
+.cta{position:relative;overflow:hidden;width:100%;height:58px;border:0;border-radius:999px;cursor:pointer;color:#fff;font-weight:600;font-size:16px;letter-spacing:.1px;display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#6D4CEB 0%,#5435D3 55%,#4528BF 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 0 1px rgba(70,40,190,.35),0 20px 36px -16px rgba(76,46,200,.7);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.cta::after{content:"";position:absolute;inset:2px 16px 55% 16px;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0))}
+.cta:active{transform:translateY(1px) scale(.985)}
+.ghost{height:50px;padding:0 20px;border-radius:999px;border:0;cursor:pointer;background:rgba(255,255,255,.55);color:var(--violet-deep);font-weight:600;font-size:14.5px;box-shadow:inset 0 0 0 1px rgba(91,59,214,.3)}
+.done-row{display:flex;gap:10px;width:100%}
+.done-row .cta{flex:1}
+
+[data-ui]{display:none}
+body[data-state="idle"] [data-ui~="idle"],
+body[data-state="build"] [data-ui~="run"],
+body[data-state="views"] [data-ui~="run"],
+body[data-state="analyse"] [data-ui~="run"],
+body[data-state="done"] [data-ui~="done"]{display:flex}
+
+/* Panneau maquette (bureau uniquement) */
+.demo{position:fixed;right:24px;top:50%;transform:translateY(-50%);width:230px;padding:16px;border-radius:20px;background:rgba(255,255,255,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 0 0 1px rgba(91,59,214,.12),0 20px 40px -24px rgba(50,30,130,.35);display:none;flex-direction:column;gap:8px}
+.demo h2{margin:0 0 2px;font-size:12px;font-weight:700;color:var(--ink)}
+.demo p{margin:0 0 6px;font-size:11.5px;line-height:1.45;color:var(--ink-2)}
+.demo button{height:36px;border-radius:10px;border:0;cursor:pointer;background:#fff;box-shadow:inset 0 0 0 1px rgba(91,59,214,.2);font-size:12.5px;font-weight:600;color:var(--violet-deep);text-align:left;padding:0 12px}
+.demo button[aria-pressed="true"]{background:var(--violet);color:#fff}
+.demo .row{display:flex;gap:6px}
+.demo .row button{flex:1;text-align:center}
+@media (min-width:900px){.demo{display:flex}}
+
+@media (prefers-reduced-motion:reduce){
+  .spin,.spin-r,.spin-fast,.spin-mid,.chev path,.dot,.halo-star.on{animation:none!important}
+}
+</style>
+</head>
+<body data-state="idle">
+<div class="world">
+<main class="app" aria-label="Scanner facial Malaki Skin">
+
+  <header class="top">
+    <div class="brand"><b>Malaki Skin</b><span>Analyse cutanée</span></div>
+    <button class="close" aria-label="Fermer le scanner" id="btnClose">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </header>
+
+  <section class="stage" id="stage">
+    <div class="scan" id="scan">
+      <canvas id="face" aria-hidden="true"></canvas>
+
+      <svg class="rings" viewBox="-20 -20 440 440" aria-hidden="true">
+        <defs>
+          <linearGradient id="gProg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#C7B6FF"/><stop offset=".5" stop-color="#6A47E6"/><stop offset="1" stop-color="#3F25B0"/>
+          </linearGradient>
+          <linearGradient id="gChamp" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#EBDDBE"/><stop offset=".5" stop-color="#B8975A"/><stop offset="1" stop-color="#8E6FD8"/>
+          </linearGradient>
+          <linearGradient id="gArc" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#5B3BD6" stop-opacity="0"/><stop offset="1" stop-color="#5B3BD6" stop-opacity=".75"/>
+          </linearGradient>
+        </defs>
+
+        <!-- 1. anneau externe -->
+        <circle cx="200" cy="200" r="192" fill="none" stroke="#B8B6C6" stroke-width=".6" opacity=".7"/>
+        <g class="spin-r"><circle cx="200" cy="200" r="198" fill="none" stroke="#B8B6C6" stroke-width=".6" stroke-dasharray="2 10" opacity=".55"/></g>
+
+        <!-- 3. micro-graduations -->
+        <g class="spin">
+          <circle cx="200" cy="200" r="184" fill="none" stroke="#9A97AE" stroke-width="3" stroke-dasharray=".7 8.93" opacity=".55"/>
+          <circle cx="200" cy="200" r="184" fill="none" stroke="#5B3BD6" stroke-width="6" stroke-dasharray="1 95.3" opacity=".55"/>
+        </g>
+
+        <!-- 2. anneau de progression -->
+        <circle cx="200" cy="200" r="174" fill="none" stroke="#E7E0FA" stroke-width="2.4"/>
+        <circle id="progRing" class="prog" cx="200" cy="200" r="174" fill="none" stroke="url(#gProg)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="1093.3" stroke-dashoffset="1093.3" transform="rotate(-90 200 200)"/>
+        <circle class="pulse-done" cx="200" cy="200" r="174" fill="none" stroke="#B8975A" stroke-width="1.2"/>
+
+        <!-- 5. arcs en rotation lente -->
+        <g class="spin-fast"><circle cx="200" cy="200" r="164" fill="none" stroke="url(#gArc)" stroke-width="1" stroke-dasharray="90 940.4" stroke-linecap="round"/></g>
+        <g class="spin-mid"><circle cx="200" cy="200" r="158" fill="none" stroke="#B9A6F5" stroke-width=".7" stroke-dasharray="36 22 4 22 140 769" opacity=".7"/></g>
+
+        <!-- 4. marqueurs de données -->
+        <g class="spin-mid">
+          <path d="M200 22 l3 4 -3 4 -3 -4z" fill="#5B3BD6" opacity=".7"/>
+          <path d="M378 200 l-4 3 -4 -3 4 -3z" fill="#B9A6F5"/>
+          <path d="M200 378 l3 -4 -3 -4 -3 4z" fill="#B9A6F5"/>
+          <circle cx="74" cy="74" r="1.8" fill="#B8975A" opacity=".8"/>
+        </g>
+
+        <!-- 6. particules discrètes -->
+        <g class="spin-fast" opacity=".8">
+          <circle cx="200" cy="34" r="1.3" fill="#7C5CF0"/>
+          <circle cx="352" cy="270" r="1" fill="#B9A6F5"/>
+          <circle cx="60" cy="300" r="1.1" fill="#B9A6F5"/>
+        </g>
+        <g class="spin-r" opacity=".7">
+          <circle cx="330" cy="88" r="1" fill="#B8975A"/>
+          <circle cx="90" cy="120" r="1.2" fill="#7C5CF0"/>
+        </g>
+
+        <!-- indication directionnelle -->
+        <g id="chevL" class="chev" fill="none" stroke="#5B3BD6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 192 l-7 8 7 8"/><path d="M4 192 l-7 8 7 8"/><path d="M-6 192 l-7 8 7 8"/>
+        </g>
+        <g id="chevR" class="chev" fill="none" stroke="#5B3BD6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M386 192 l7 8 -7 8"/><path d="M396 192 l7 8 -7 8"/><path d="M406 192 l7 8 -7 8"/>
+        </g>
+
+        <!-- constellation des 7 vues -->
+        <path d="M19.9 96 A208 208 0 0 1 380.1 96" fill="none" stroke="#B8B6C6" stroke-width=".6" opacity=".6" stroke-dasharray="1.5 3"/>
+        <path id="constLine" d="M19.9 96 A208 208 0 0 1 380.1 96" pathLength="6" fill="none" stroke="#5B3BD6" stroke-width="1" stroke-dasharray="0 6" opacity=".75"/>
+        <g id="stars"></g>
+      </svg>
+
+      <div class="holo tl" id="hTL"><b>FACIAL MESH</b><i>EN ATTENTE</i></div>
+      <div class="holo tr" id="hTR"><b>DEPTH MAP</b><i>—</i></div>
+      <div class="holo bl" id="hBL"><b>FACE LANDMARKS</b><i>—</i></div>
+      <div class="holo br" id="hBR"><b>SIGNAL</b><i>EN ATTENTE</i></div>
+      <div class="live" id="live"><span class="dot"></span><span id="liveTxt">CAMÉRA PRÊTE</span></div>
+
+      <div class="callout" id="callout"><b id="coZone">FRONT</b><div class="st" id="coState">CAPTURE</div></div>
+    </div>
+  </section>
+
+  <section class="guide" aria-live="polite">
+    <div class="instr" id="instr">Centrez votre visage</div>
+    <div class="sub" id="sub">LUMIÈRE NATURELLE CONSEILLÉE</div>
+  </section>
+
+  <footer class="bottom">
+    <button class="cta" data-ui="idle" id="btnStart">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/></svg>
+      Commencer l'analyse
+    </button>
+
+    <div class="prog-read" data-ui="run">
+      <small id="progLabel">ANALYSE EN COURS</small>
+      <strong><span id="progNum">00</span> <em>/ 07</em></strong>
+    </div>
+    <button class="ctrl" data-ui="run" id="btnPause" aria-label="Mettre en pause">
+      <svg id="icoPause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5" width="3.2" height="14" rx="1.2"/><rect x="13.8" y="5" width="3.2" height="14" rx="1.2"/></svg>
+      <svg id="icoPlay" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+    </button>
+
+    <div class="done-row" data-ui="done">
+      <button class="ghost" id="btnAgain">Refaire</button>
+      <button class="cta" id="btnResults">Voir mes résultats
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </footer>
+</main>
+
+<aside class="demo" aria-label="Contrôles de la maquette">
+  <h2>Contrôles de la maquette</h2>
+  <p>Ce panneau sert seulement à parcourir les états. Il n'apparaît pas dans l'application.</p>
+  <button data-jump="idle">1. Écran de départ</button>
+  <button data-jump="build">2. Reconstruction du visage</button>
+  <button data-jump="view1">3. Vue 1 / 7</button>
+  <button data-jump="view3">4. Vue 3 / 7 · profil</button>
+  <button data-jump="view6">5. Vue 6 / 7 · profil</button>
+  <button data-jump="analyse">6. Analyse</button>
+  <button data-jump="done">7. Terminé</button>
+  <div class="row" style="margin-top:6px">
+    <button data-speed="1" aria-pressed="true">Vitesse ×1</button>
+    <button data-speed="2" aria-pressed="false">×2</button>
+  </div>
+</aside>
+</div>
+
+<script>
+/* =====================================================================
+   DONNÉES FICTIVES — UNIQUEMENT POUR ANIMER LA MAQUETTE
+   Rien ici ne vient du moteur Face Scan de Malaki. Ni score, ni mesure,
+   ni observation : seulement l'ordre des vues, les consignes affichées,
+   les zones montrées comme « capturées » et les durées d'animation.
+   À remplacer par les vrais événements du moteur lors de l'intégration.
+   ===================================================================== */
+const DEMO = {
+  views: [
+    { instruction: "Regardez face à vous",        dir:  0, yaw:  0.00, zone: "front"  },
+    { instruction: "Tournez légèrement à gauche", dir: -1, yaw: -0.38, zone: "jd"     },
+    { instruction: "Profil gauche",               dir: -1, yaw: -0.88, zone: "jd"     },
+    { instruction: "Revenez face à vous",         dir:  0, yaw:  0.00, zone: "nez"    },
+    { instruction: "Tournez légèrement à droite", dir:  1, yaw:  0.38, zone: "jg"     },
+    { instruction: "Profil droit",                dir:  1, yaw:  0.88, zone: "jg"     },
+    { instruction: "Regardez face à vous",        dir:  0, yaw:  0.00, zone: "menton" }
+  ],
+  // Zones affichées (aperçu miroir : la joue gauche de la personne apparaît à gauche)
+  zones: {
+    front:  { label: "FRONT",        x:  0.00, y: -0.62, off: [ 0.70, -0.62] },
+    nez:    { label: "NEZ",          x:  0.00, y:  0.14, off: [ 0.78, -0.10] },
+    jg:     { label: "JOUE GAUCHE",  x: -0.44, y:  0.22, off: [-0.80,  0.30] },
+    jd:     { label: "JOUE DROITE",  x:  0.44, y:  0.22, off: [ 0.74,  0.30] },
+    menton: { label: "MENTON",       x:  0.00, y:  0.86, off: [ 0.66,  0.34] }
+  },
+  timing: { build: 3900, rotate: 1100, scan: 1500, zone: 1300, settle: 300, analyse: 3800 }
+};
+/* ===================================================================== */
+
+const VIEW_T = DEMO.timing.rotate + DEMO.timing.scan + DEMO.timing.zone + DEMO.timing.settle;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+const clamp = (v,a=0,b=1) => Math.max(a, Math.min(b, v));
+const ease = t => t<.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+const easeOut = t => 1 - Math.pow(1-t,3);
+const lerp = (a,b,t) => a + (b-a)*t;
+
+/* ---------- Modèle 3D du visage (surface stylisée) ---------- */
+function W(y){
+  if (y < 0) return 0.80*Math.pow(Math.max(0, 1-Math.pow(-y/1.18, 4)), 0.5);
+  return 0.80*Math.pow(Math.max(0, 1-Math.pow(y/1.08, 3)), 0.55)*(1-0.13*y);
+}
+const G = (x,y,cx,cy,sx,sy) => Math.exp(-(((x-cx)**2)/(2*sx*sx) + ((y-cy)**2)/(2*sy*sy)));
+function Z(x,y){
+  const w = W(y); if (w < 0.001) return 0;
+  const r = Math.max(0, 1-(x/w)**2);
+  let z = 0.62*Math.pow(r,0.55)*(1-0.12*y*y);
+  const ax = Math.abs(x);
+  z += 0.20*G(x,y,0,-0.02,0.07,0.27);           // arête du nez
+  z += 0.15*G(x,y,0,0.24,0.085,0.075);          // pointe du nez
+  z += 0.05*G(ax,y,0.12,0.28,0.055,0.045);      // ailes du nez
+  z -= 0.10*G(ax,y,0.32,-0.14,0.13,0.075);      // orbites
+  z += 0.035*G(ax,y,0.32,-0.13,0.07,0.035);     // paupières
+  z += 0.06*G(ax,y,0.30,-0.30,0.18,0.05);       // arcades
+  z += 0.08*G(ax,y,0.42,0.08,0.13,0.12);        // pommettes
+  z += 0.055*G(x,y,0,0.475,0.17,0.032);         // lèvre supérieure
+  z += 0.06*G(x,y,0,0.56,0.15,0.035);           // lèvre inférieure
+  z -= 0.025*G(x,y,0,0.515,0.17,0.012);         // commissure
+  z += 0.07*G(x,y,0,0.85,0.16,0.10);            // menton
+  z -= 0.04*G(ax,y,0.62,-0.30,0.08,0.15);       // tempes
+  return z;
+}
+function normal(x,y){
+  const e = 0.01;
+  const dx = (Z(x+e,y)-Z(x-e,y))/(2*e), dy = (Z(x,y+e)-Z(x,y-e))/(2*e);
+  const l = Math.hypot(dx,dy,1); return [-dx/l, -dy/l, 1/l];
+}
+
+// Nuage de points + grille
+const STEP = 0.036, pts = [], grid = [];
+let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+for (let y=-1.16, i=0; y<=1.07; y+=STEP, i++){
+  const row = []; grid.push(row);
+  for (let x=-0.82, j=0; x<=0.82; x+=STEP, j++){
+    if (Math.abs(x) < W(y)*0.985){
+      const jx = x + (rnd()-.5)*STEP*0.3, jy = y + (rnd()-.5)*STEP*0.3;
+      const n = normal(jx,jy);
+      const a = rnd()*Math.PI*2, rr = 1.2 + rnd()*0.9;
+      const p = { x:jx, y:jy, z:Z(jx,jy), n,
+        sx: Math.cos(a)*rr, sy: Math.sin(a)*rr*0.95, sz: (rnd()-.5)*1.4,
+        d: rnd()*0.45, ph: rnd()*Math.PI*2,
+        X:0,Y:0,F:0,L:0 };
+      pts.push(p); row[j] = p;
+    } else row[j] = null;
+  }
+}
+
+// Lignes de contour du visage (traits élégants)
+const curves = [];
+(function(){
+  const outline = [];
+  for (let y=-1.12; y<=1.05; y+=0.03) outline.push([-W(y)*0.975, y]);
+  for (let y=1.05; y>=-1.12; y-=0.03) outline.push([ W(y)*0.975, y]);
+  outline.push(outline[0]); curves.push(outline);
+  for (const s of [-1,1]){
+    const brow=[], up=[], lo=[];
+    for (let t=0; t<=1.0001; t+=0.05){ const x=0.14+0.34*t; brow.push([s*x, -0.30-0.05*Math.sin(Math.PI*t)]); }
+    for (let t=0; t<=Math.PI+0.001; t+=Math.PI/16){ up.push([s*(0.32+0.12*Math.cos(t)), -0.13-0.042*Math.sin(t)]); lo.push([s*(0.32+0.12*Math.cos(t)), -0.13+0.026*Math.sin(t)]); }
+    curves.push(brow, up, lo);
+    const bridge=[]; for (let y=-0.12; y<=0.21; y+=0.03) bridge.push([s*0.05, y]); curves.push(bridge);
+    const ala=[]; for (let t=0; t<=1.0001; t+=0.1){ ala.push([s*(0.06+0.08*Math.sin(Math.PI*t*0.9)), 0.30-0.07*Math.cos(Math.PI*t)*0.6]); } curves.push(ala);
+  }
+  const nb=[]; for (let x=-0.13; x<=0.131; x+=0.02) nb.push([x, 0.30+0.025*Math.cos(Math.PI*x/0.13)]); curves.push(nb);
+  const lu=[], lm=[], ll=[];
+  for (let x=-0.17; x<=0.171; x+=0.017){ const k=x/0.17;
+    lu.push([x, 0.478 + 0.03*k*k - 0.008*Math.exp(-(x*x)/0.0012)]);
+    lm.push([x, 0.515 + 0.012*k*k]);
+    ll.push([x, 0.515 + 0.052*(1-k*k)]);
+  }
+  curves.push(lu,lm,ll);
+  const ch=[]; for (let x=-0.1; x<=0.101; x+=0.02) ch.push([x, 0.68+0.012*(x/0.1)**2]); curves.push(ch);
+  curves.forEach(c => c.forEach(p => p.push(Z(p[0],p[1])+0.006)));
+})();
+
+/* ---------- Canvas ---------- */
+const canvas = $('face'), ctx = canvas.getContext('2d');
+let S = 340, DPR = 1, K = 1, CX = 0, CY = 0;
+function layout(){
+  const st = $('stage').getBoundingClientRect();
+  S = Math.floor(Math.max(240, Math.min(st.width + 36, st.height, 470)));
+  const sc = $('scan'); sc.style.width = S+'px'; sc.style.height = S+'px';
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = S*DPR; canvas.height = S*DPR;
+  K = S*0.27*DPR; CX = S*DPR/2; CY = S*DPR/2 + 0.04*K;
+}
+new ResizeObserver(layout).observe($('stage'));
+layout();
+
+let yaw = 0, pitch = 0.06;
+function project(x,y,z){
+  const cp=Math.cos(pitch), sp=Math.sin(pitch), cy=Math.cos(yaw), sy=Math.sin(yaw);
+  const y1 = y*cp - z*sp, z1 = y*sp + z*cp;
+  const x2 = x*cy + z1*sy, z2 = -x*sy + z1*cy;
+  const f = 3.4, s = f/(f - z2);
+  return [CX + x2*s*K, CY + y1*s*K, z2];
+}
+function rotN(n){
+  const cp=Math.cos(pitch), sp=Math.sin(pitch), cy=Math.cos(yaw), sy=Math.sin(yaw);
+  const y1 = n[1]*cp - n[2]*sp, z1 = n[1]*sp + n[2]*cp;
+  return [n[0]*cy + z1*sy, y1, -n[0]*sy + z1*cy];
+}
+const LIGHT = (() => { const v=[-0.45,-0.55,0.72], l=Math.hypot(...v); return v.map(c=>c/l); })();
+
+/* ---------- État / chronologie ---------- */
+const S0 = { phase:'idle', t:0, view:0, paused:false, speed:1, captured:new Set(), yawFrom:0 };
+let st = { ...S0, captured:new Set() };
+
+function setPhase(p, view=0){
+  st.phase = p; st.t = 0; st.view = view;
+  document.body.dataset.state = p;
+  if (p === 'idle'){ st.captured = new Set(); }
+  if (p === 'views'){ st.yawFrom = yaw; }
+  if (p === 'analyse'){ st.yawFrom = yaw; }
+  $('scan').classList.toggle('complete', p === 'done');
+  uiDirty = true;
+}
+
+/* ---------- Interface ---------- */
+const starsG = $('stars');
+for (let i=0;i<7;i++){
+  const a = (-60 + i*20) * Math.PI/180, x = 200 + 208*Math.sin(a), y = 200 - 208*Math.cos(a);
+  starsG.insertAdjacentHTML('beforeend',
+    `<circle class="ring-star" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5"/>`+
+    `<circle class="halo-star" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2"/>`+
+    `<circle class="star future" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6"/>`);
+}
+const starEls = [...starsG.querySelectorAll('.star')], haloEls=[...starsG.querySelectorAll('.halo-star')], ringEls=[...starsG.querySelectorAll('.ring-star')];
+
+let uiDirty = true, cache = {};
+function setText(id, txt){ if (cache[id] !== txt){ cache[id] = txt; $(id).innerHTML = txt; } }
+function setInstr(txt, serif=false){
+  if (cache.instr === txt) return; cache.instr = txt;
+  const el = $('instr'); el.classList.add('swap');
+  setTimeout(() => { el.textContent = txt; el.classList.toggle('serif', serif); el.classList.remove('swap'); }, reduced ? 0 : 260);
+}
+function holo(id, label, val){ setText(id, `<b>${label}</b><i>${val}</i>`); }
+
+function updateUI(){
+  const p = st.phase, v = st.view, t = st.t;
+  let done = 0, cur = -1, frac = 0;
+  if (p === 'views'){ done = v; cur = v; frac = (v + clamp(t/VIEW_T))/7; }
+  if (p === 'analyse' || p === 'done'){ done = 7; frac = 1; }
+  starEls.forEach((s,i) => {
+    const cls = i < done ? 'done' : (i === cur ? 'current' : 'future');
+    if (s.dataset.c !== cls){ s.dataset.c = cls; s.setAttribute('class','star '+cls); s.setAttribute('r', cls==='future'?2.6:(cls==='current'?3.4:3)); }
+    haloEls[i].classList.toggle('on', i === cur);
+    ringEls[i].classList.toggle('on', i < done);
+  });
+  $('constLine').setAttribute('stroke-dasharray', `${Math.max(0, done-1)} 6`);
+  $('progRing').setAttribute('stroke-dashoffset', (1093.3*(1-frac)).toFixed(1));
+  $('progNum').textContent = String(p==='views' ? v+1 : (p==='build'||p==='idle' ? 0 : 7)).padStart(2,'0');
+
+  // Indication directionnelle
+  const dir = p==='views' && t < DEMO.timing.rotate + 400 ? DEMO.views[v].dir : 0;
+  $('chevL').classList.toggle('on', dir === -1);
+  $('chevR').classList.toggle('on', dir === 1);
+
+  if (p === 'idle'){
+    setInstr('Centrez votre visage');
+    setText('sub','LUMIÈRE NATURELLE CONSEILLÉE');
+    holo('hTL','FACIAL MESH','EN ATTENTE'); holo('hTR','DEPTH MAP','—'); holo('hBL','FACE LANDMARKS','—'); holo('hBR','SIGNAL','EN ATTENTE');
+    setText('liveTxt','CAMÉRA PRÊTE');
+  }
+  if (p === 'build'){
+    const k = t / DEMO.timing.build;
+    setInstr('Regardez face à vous');
+    setText('sub', k < .45 ? 'DÉTECTION DU VISAGE' : (k < .72 ? 'CONNEXION DES POINTS' : 'RECONSTRUCTION DU VOLUME'));
+    holo('hTL','FACIAL MESH', k < .72 ? 'CONSTRUCTION' : 'ACTIF');
+    holo('hTR','DEPTH MAP', k < .72 ? 'EN ATTENTE' : 'CALCUL');
+    holo('hBL','FACE LANDMARKS', k < .45 ? 'DÉTECTION' : 'VERROUILLÉS');
+    holo('hBR','SIGNAL','STABLE');
+    setText('liveTxt','LIVE ANALYSIS');
+    setText('progLabel','INITIALISATION');
+  }
+  if (p === 'views'){
+    const vw = DEMO.views[v], R = DEMO.timing.rotate, Sc = DEMO.timing.scan;
+    setInstr(vw.instruction);
+    if (t < R) setText('sub','ALIGNEMENT');
+    else if (t < R+Sc) setText('sub','<span class="dot"></span>CAPTURE DE LA VUE');
+    else setText('sub', `<span class="ok">✓</span> VUE ${String(v+1).padStart(2,'0')} VALIDÉE`);
+    holo('hTL','FACIAL MESH','ACTIF'); holo('hTR','DEPTH MAP','ACTIVE'); holo('hBL','FACE LANDMARKS','VERROUILLÉS'); holo('hBR','SIGNAL','STABLE');
+    setText('liveTxt', `ZONE CAPTURE · ${st.captured.size} / 5`);
+    setText('progLabel','ANALYSE EN COURS');
+  }
+  if (p === 'analyse'){
+    const k = t / DEMO.timing.analyse;
+    setInstr('Malaki assemble votre cartographie', true);
+    setText('sub', k < .34 ? 'FUSION DES 7 VUES' : (k < .67 ? 'CARTOGRAPHIE DES ZONES' : 'PRÉPARATION DU RAPPORT'));
+    setText('liveTxt','ZONE CAPTURE · 5 / 5');
+    setText('progLabel','ANALYSE');
+  }
+  if (p === 'done'){
+    setInstr('Analyse terminée', true);
+    setText('sub','<span class="ok">✓</span> 7 VUES · 5 ZONES CAPTURÉES');
+    setText('liveTxt','CARTOGRAPHIE PRÊTE');
+  }
+}
+
+/* ---------- Rendu ---------- */
+const callout = $('callout');
+function draw(now){
+  const W2 = canvas.width, H2 = canvas.height;
+  ctx.clearRect(0,0,W2,H2);
+  const p = st.phase, t = st.t;
+
+  // Paramètres d'étape
+  let gather = 0, lines = 0, vol = 0, carto = 0, scanY = null, zoneKey = null, zoneK = 0;
+  if (p === 'idle'){ gather = 0; }
+  if (p === 'build'){
+    const b = DEMO.timing.build;
+    gather = clamp(t/(b*0.46)); lines = clamp((t - b*0.42)/(b*0.28)); vol = clamp((t - b*0.66)/(b*0.30));
+  }
+  if (p === 'views' || p === 'analyse' || p === 'done'){ gather = 1; lines = 1; vol = 1; }
+  if (p === 'views'){
+    const vw = DEMO.views[st.view], R = DEMO.timing.rotate, Sc = DEMO.timing.scan, Zt = DEMO.timing.zone;
+    yaw = lerp(st.yawFrom, vw.yaw, ease(clamp(t/R)));
+    if (t >= R && t < R+Sc) scanY = lerp(-1.22, 1.12, ease((t-R)/Sc));
+    if (t >= R+Sc && t < R+Sc+Zt){ zoneKey = vw.zone; zoneK = (t-R-Sc)/Zt; }
+  }
+  if (p === 'analyse'){
+    yaw = lerp(st.yawFrom, 0, ease(clamp(t/1400)));
+    carto = clamp((t-600)/1800);
+    scanY = t > 1500 && t < 3300 ? lerp(1.12, -1.22, ease((t-1500)/1800)) : null;
+  }
+  if (p === 'done'){ carto = 1; yaw = Math.sin(now/2600)*0.28; }
+  if (p === 'idle' || p === 'build'){ yaw = Math.sin(now/3000)*0.05; }
+  pitch = 0.06 + Math.sin(now/2300)*0.02;
+
+  const g = reduced ? (p==='idle'?0:1) : gather;
+  const dprs = DPR * (S/390);
+
+  // Projection
+  for (const q of pts){
+    const k = easeOut(clamp((g - q.d*0.6)/(1 - q.d*0.6 + 1e-6)));
+    let x, y, z;
+    if (k >= 1){ x=q.x; y=q.y; z=q.z; }
+    else {
+      const dr = p==='idle' ? 0.05 : 0;
+      const ox = q.sx + Math.sin(now/1700+q.ph)*dr*2, oy = q.sy + Math.cos(now/2100+q.ph)*dr*2;
+      x = lerp(ox, q.x, k); y = lerp(oy, q.y, k); z = lerp(q.sz, q.z, k);
+    }
+    const pr = project(x,y,z); q.X = pr[0]; q.Y = pr[1];
+    const n = rotN(q.n); q.F = n[2]; q.L = Math.max(0, n[0]*LIGHT[0] + n[1]*LIGHT[1] + n[2]*LIGHT[2]);
+    q.k = k;
+  }
+
+  // Halo de zones (cartographie)
+  const zoneDraw = (key, a) => {
+    const zd = DEMO.zones[key], pr = project(zd.x, zd.y, Z(zd.x,zd.y));
+    const r = 0.30*K;
+    const grd = ctx.createRadialGradient(pr[0],pr[1],0,pr[0],pr[1],r);
+    grd.addColorStop(0, `rgba(124,92,240,${0.30*a})`); grd.addColorStop(1,'rgba(124,92,240,0)');
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(pr[0],pr[1],r,0,Math.PI*2); ctx.fill();
+    return pr;
+  };
+  if (carto > 0) for (const key of Object.keys(DEMO.zones)) zoneDraw(key, carto*0.55);
+  else if (p === 'views') for (const key of st.captured) zoneDraw(key, 0.22);
+  let zonePr = null;
+  if (zoneKey) zonePr = zoneDraw(zoneKey, Math.sin(Math.PI*clamp(zoneK*1.3)) + 0.25);
+
+  // Maillage (lignes)
+  if (lines > 0){
+    ctx.lineWidth = 0.7*DPR;
+    const drawPoly = (getRow, count, alpha, color) => {
+      ctx.strokeStyle = color; ctx.globalAlpha = alpha;
+      for (let i=0;i<count;i++){
+        const row = getRow(i); if (!row) continue;
+        ctx.beginPath(); let pen = false;
+        for (const q of row){
+          if (!q || q.F < 0.08 || q.k < 1){ pen = false; continue; }
+          if (!pen){ ctx.moveTo(q.X,q.Y); pen = true; } else ctx.lineTo(q.X,q.Y);
+        }
+        ctx.stroke();
+      }
+    };
+    const rowColor = carto > 0 ? `rgba(${Math.round(lerp(120,184,carto*0.5))},${Math.round(lerp(96,151,carto*0.5))},${Math.round(lerp(220,150,carto*0.5))},1)` : 'rgba(110,86,214,1)';
+    drawPoly(i => grid[i*2], Math.ceil(grid.length/2), (0.16 + 0.10*carto)*lines, rowColor);
+    const cols = grid[0].length;
+    drawPoly(j => { const c=[]; for (const r of grid) c.push(r[j*3]); return c; }, Math.ceil(cols/3), 0.10*lines, 'rgba(150,140,190,1)');
+    ctx.globalAlpha = 1;
+  }
+
+  // Points
+  for (const q of pts){
+    let fa = clamp((q.F + 0.05)/0.4);
+    if (q.k < 1) fa = 1;
+    if (fa <= 0.01) continue;
+    let boost = 0;
+    if (scanY !== null){ const d = Math.abs(q.y - scanY); if (d < 0.09) boost = 1 - d/0.09; }
+    if (zoneKey){ const zd = DEMO.zones[zoneKey]; const d = Math.hypot(q.x-zd.x, q.y-zd.y); if (d < 0.24) boost = Math.max(boost, (1-d/0.24)*Math.sin(Math.PI*clamp(zoneK*1.3))); }
+    const shade = 0.30 + 0.55*vol*q.L;
+    const r = Math.round(lerp(176, 72, shade)), gg = Math.round(lerp(172, 46, shade)), b = Math.round(lerp(196, 196, shade));
+    const rr = Math.round(lerp(r, 232, boost)), g2 = Math.round(lerp(gg, 222, boost)), b2 = Math.round(lerp(b, 255, boost));
+    const base = p==='idle' ? 0.32 : (0.30 + 0.45*q.k);
+    const a = Math.min(1, (base + 0.25*vol*q.L + 0.5*boost) * fa);
+    const sz = (0.85 + 0.55*vol*q.L + 1.3*boost) * dprs;
+    ctx.fillStyle = `rgba(${rr},${g2},${b2},${a.toFixed(3)})`;
+    ctx.fillRect(q.X - sz/2, q.Y - sz/2, sz, sz);
+  }
+
+  // Traits du visage
+  if (lines > 0){
+    ctx.lineWidth = 1.05*DPR; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.strokeStyle = `rgba(63,37,176,${(0.55*lines).toFixed(3)})`;
+    curves.forEach((c, ci) => {
+      ctx.globalAlpha = ci === 0 ? lerp(1, 0.3, clamp(Math.abs(yaw)/0.85)) : 1;
+      ctx.beginPath(); let pen=false;
+      for (const pt of c){
+        const n = rotN(normal(pt[0],pt[1]));
+        if (n[2] < 0.12){ pen=false; continue; }
+        const pr = project(pt[0],pt[1],pt[2]);
+        if (!pen){ ctx.moveTo(pr[0],pr[1]); pen=true; } else ctx.lineTo(pr[0],pr[1]);
+      }
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // Cercles de cartographie
+  if (carto > 0){
+    ctx.setLineDash([2*DPR, 4*DPR]); ctx.lineWidth = 0.9*DPR;
+    for (const key of Object.keys(DEMO.zones)){
+      const zd = DEMO.zones[key], pr = project(zd.x, zd.y, Z(zd.x,zd.y));
+      ctx.strokeStyle = `rgba(184,151,90,${(0.75*carto).toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(pr[0],pr[1], 0.17*K, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = `rgba(91,59,214,${carto.toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(pr[0],pr[1], 2.2*DPR, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.setLineDash([]);
+  }
+
+  // Ligne de scan
+  if (scanY !== null){
+    const pr = project(0, scanY, Z(0,scanY) );
+    const w = W(scanY)*K*1.25 + 0.15*K;
+    const grd = ctx.createLinearGradient(pr[0]-w,0,pr[0]+w,0);
+    grd.addColorStop(0,'rgba(124,92,240,0)'); grd.addColorStop(.5,'rgba(124,92,240,.85)'); grd.addColorStop(1,'rgba(124,92,240,0)');
+    ctx.fillStyle = grd; ctx.fillRect(pr[0]-w, pr[1]-0.75*DPR, 2*w, 1.5*DPR);
+    const band = ctx.createLinearGradient(0, pr[1]-0.22*K, 0, pr[1]);
+    band.addColorStop(0,'rgba(185,166,245,0)'); band.addColorStop(1,'rgba(185,166,245,.20)');
+    ctx.fillStyle = band; ctx.fillRect(pr[0]-w, pr[1]-0.22*K, 2*w, 0.22*K);
+  }
+
+  // Bulle de zone
+  if (zoneKey && zonePr){
+    const zd = DEMO.zones[zoneKey];
+    const ax = zonePr[0] + zd.off[0]*K, ay = zonePr[1] + zd.off[1]*K;
+    const fade = zoneK < 0.12 ? zoneK/0.12 : (zoneK > 0.86 ? (1-zoneK)/0.14 : 1);
+    ctx.strokeStyle = `rgba(91,59,214,${(0.7*fade).toFixed(3)})`; ctx.lineWidth = 0.9*DPR;
+    ctx.beginPath(); ctx.moveTo(zonePr[0], zonePr[1]); ctx.lineTo(ax, ay); ctx.stroke();
+    ctx.fillStyle = `rgba(91,59,214,${fade.toFixed(3)})`; ctx.beginPath(); ctx.arc(zonePr[0],zonePr[1],3*DPR,0,Math.PI*2); ctx.fill();
+    const left = zd.off[0] < 0;
+    let cx = ax/DPR, cy = ay/DPR - 22;
+    const cw = callout.offsetWidth || 110;
+    if (left) cx -= cw;
+    const mg = Math.max(0, (S - document.documentElement.clientWidth)/2) + 8;
+    cx = Math.max(mg, Math.min(S - cw - mg, cx)); cy = Math.max(4, Math.min(S - 52, cy));
+    callout.style.transform = `translate(${cx}px,${cy}px)`;
+    callout.style.opacity = fade.toFixed(3);
+    setText('coZone', zd.label);
+    setText('coState', zoneK < 0.42 ? '<span class="dot"></span>CAPTURE' : '<span class="ok">✓</span> CAPTURÉE');
+  } else callout.style.opacity = 0;
+}
+
+/* ---------- Boucle ---------- */
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(64, now - last); last = now;
+  if (!st.paused && st.phase !== 'idle' && st.phase !== 'done'){
+    st.t += dt * st.speed;
+    if (st.phase === 'build' && st.t >= DEMO.timing.build) setPhase('views', 0);
+    else if (st.phase === 'views'){
+      const R = DEMO.timing.rotate, Sc = DEMO.timing.scan;
+      if (st.t >= R + Sc + DEMO.timing.zone*0.42) st.captured.add(DEMO.views[st.view].zone);
+      if (st.t >= VIEW_T){
+        if (st.view < 6){ st.view++; st.t = 0; st.yawFrom = yaw; }
+        else setPhase('analyse');
+      }
+    }
+    else if (st.phase === 'analyse' && st.t >= DEMO.timing.analyse) setPhase('done');
+  }
+  updateUI();
+  draw(now);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- Contrôles ---------- */
+$('btnStart').addEventListener('click', () => { st.captured = new Set(); setPhase('build'); });
+$('btnAgain').addEventListener('click', () => setPhase('idle'));
+$('btnClose').addEventListener('click', () => setPhase('idle'));
+$('btnResults').addEventListener('click', () => {
+  $('btnResults').animate([{transform:'scale(1)'},{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:300});
+});
+$('btnPause').addEventListener('click', () => {
+  st.paused = !st.paused;
+  document.body.classList.toggle('paused', st.paused);
+  $('btnPause').setAttribute('aria-label', st.paused ? 'Reprendre' : 'Mettre en pause');
+  $('icoPause').style.display = st.paused ? 'none' : '';
+  $('icoPlay').style.display = st.paused ? '' : 'none';
+});
+document.querySelectorAll('[data-jump]').forEach(b => b.addEventListener('click', () => {
+  const j = b.dataset.jump;
+  st.paused = false; document.body.classList.remove('paused'); $('icoPause').style.display=''; $('icoPlay').style.display='none';
+  const zonesUpTo = n => new Set(DEMO.views.slice(0,n).map(v=>v.zone));
+  if (j === 'idle') setPhase('idle');
+  if (j === 'build'){ st.captured = new Set(); setPhase('build'); }
+  if (j.startsWith('view')){
+    const n = +j.slice(4) - 1;
+    st.captured = zonesUpTo(n); yaw = n ? DEMO.views[n-1].yaw : 0;
+    setPhase('views', n); st.yawFrom = yaw;
+  }
+  if (j === 'analyse'){ st.captured = zonesUpTo(7); yaw = DEMO.views[6].yaw; setPhase('analyse'); }
+  if (j === 'done'){ st.captured = zonesUpTo(7); setPhase('done'); }
+}));
+document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
+  st.speed = +b.dataset.speed;
+  document.querySelectorAll('[data-speed]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+}));
+</script>
+</body>
+</html>
